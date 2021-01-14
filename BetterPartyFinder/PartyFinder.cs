@@ -38,6 +38,10 @@ namespace BetterPartyFinder {
 
         private readonly PartyFinderSlot[] _slots;
 
+        private readonly byte[] _jobsPresent;
+        internal IReadOnlyCollection<byte> RawJobsPresent => this._jobsPresent;
+        internal IReadOnlyCollection<Lazy<ClassJob?>> JobsPresent { get; }
+
         public bool this[ObjectiveFlags flag] => this._objective == 0 || (this._objective & (uint) flag) > 0;
 
 
@@ -71,6 +75,12 @@ namespace BetterPartyFinder {
             this._searchArea = listing.searchArea;
 
             this._slots = listing.slots.Select(accepting => new PartyFinderSlot(accepting)).ToArray();
+            this._jobsPresent = listing.jobsPresent;
+            this.JobsPresent = this._jobsPresent
+                .Select(id => new Lazy<ClassJob?>(() => id == 0
+                    ? null
+                    : dataManager.GetExcelSheet<ClassJob>().GetRow(id)))
+                .ToArray();
         }
     }
 

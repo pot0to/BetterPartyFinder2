@@ -11,6 +11,7 @@ namespace BetterPartyFinder {
     [StructLayout(LayoutKind.Sequential)]
     public struct PfPacket {
         private readonly int unk0;
+
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
         private readonly byte[] padding1;
 
@@ -80,14 +81,14 @@ namespace BetterPartyFinder {
 
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
         internal readonly uint[] slots;
-        private readonly uint job; // job started as?
 
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
-        private readonly byte[] header11; // all zero in every pf I've examined
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
+        internal readonly byte[] jobsPresent;
 
         // Note that ByValTStr will not work here because the strings are UTF-8 and there's only a CharSet for UTF-16 in C#.
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
         private readonly byte[] name;
+
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 192)]
         private readonly byte[] description;
 
