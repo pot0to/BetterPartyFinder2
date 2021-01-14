@@ -94,7 +94,7 @@ namespace BetterPartyFinder {
             if (IconButton(FontAwesomeIcon.Plus, "add-preset")) {
                 var id = Guid.NewGuid();
 
-                this.Plugin.Config.Presets.Add(id, new ConfigurationFilter());
+                this.Plugin.Config.Presets.Add(id, ConfigurationFilter.Create());
                 this.Plugin.Config.SelectedPreset = id;
                 this.Plugin.Config.Save();
             }
@@ -305,7 +305,97 @@ namespace BetterPartyFinder {
                 return;
             }
 
-            ImGui.TextUnformatted("Nothing here yet");
+            var practice = filter[ObjectiveFlags.Practice];
+            if (ImGui.Checkbox("Practice", ref practice)) {
+                filter[ObjectiveFlags.Practice] = practice;
+                this.Plugin.Config.Save();
+            }
+
+            var dutyCompletion = filter[ObjectiveFlags.DutyCompletion];
+            if (ImGui.Checkbox("Duty completion", ref dutyCompletion)) {
+                filter[ObjectiveFlags.DutyCompletion] = dutyCompletion;
+                this.Plugin.Config.Save();
+            }
+
+            var loot = filter[ObjectiveFlags.Loot];
+            if (ImGui.Checkbox("Loot", ref loot)) {
+                filter[ObjectiveFlags.Loot] = loot;
+                this.Plugin.Config.Save();
+            }
+
+            ImGui.Separator();
+
+            var noCondition = filter[ConditionFlags.None];
+            if (ImGui.Checkbox("No duty completion requirement", ref noCondition)) {
+                filter[ConditionFlags.None] = noCondition;
+                this.Plugin.Config.Save();
+            }
+
+            var dutyIncomplete = filter[ConditionFlags.DutyIncomplete];
+            if (ImGui.Checkbox("Duty incomplete", ref dutyIncomplete)) {
+                filter[ConditionFlags.DutyIncomplete] = dutyIncomplete;
+                this.Plugin.Config.Save();
+            }
+
+            var dutyComplete = filter[ConditionFlags.DutyComplete];
+            if (ImGui.Checkbox("Duty complete", ref dutyComplete)) {
+                filter[ConditionFlags.DutyComplete] = dutyComplete;
+                this.Plugin.Config.Save();
+            }
+
+            ImGui.Separator();
+
+            var undersized = filter[DutyFinderSettingsFlags.UndersizedParty];
+            if (ImGui.Checkbox("Undersized party", ref undersized)) {
+                filter[DutyFinderSettingsFlags.UndersizedParty] = undersized;
+                this.Plugin.Config.Save();
+            }
+
+            var minItemLevel = filter[DutyFinderSettingsFlags.MinimumItemLevel];
+            if (ImGui.Checkbox("Minimum item level", ref minItemLevel)) {
+                filter[DutyFinderSettingsFlags.MinimumItemLevel] = minItemLevel;
+                this.Plugin.Config.Save();
+            }
+
+            var silenceEcho = filter[DutyFinderSettingsFlags.SilenceEcho];
+            if (ImGui.Checkbox("Silence Echo", ref silenceEcho)) {
+                filter[DutyFinderSettingsFlags.SilenceEcho] = silenceEcho;
+                this.Plugin.Config.Save();
+            }
+
+            ImGui.Separator();
+
+            var greedOnly = filter[LootRuleFlags.GreedOnly];
+            if (ImGui.Checkbox("Greed only", ref greedOnly)) {
+                filter[LootRuleFlags.GreedOnly] = greedOnly;
+                this.Plugin.Config.Save();
+            }
+
+            var lootmaster = filter[LootRuleFlags.Lootmaster];
+            if (ImGui.Checkbox("Lootmaster", ref lootmaster)) {
+                filter[LootRuleFlags.Lootmaster] = lootmaster;
+                this.Plugin.Config.Save();
+            }
+
+            ImGui.Separator();
+
+            var dataCentre = filter[SearchAreaFlags.DataCentre];
+            if (ImGui.Checkbox("Data centre parties", ref dataCentre)) {
+                filter[SearchAreaFlags.DataCentre] = dataCentre;
+                this.Plugin.Config.Save();
+            }
+
+            var world = filter[SearchAreaFlags.World];
+            if (ImGui.Checkbox("World-local parties", ref world)) {
+                filter[SearchAreaFlags.World] = world;
+                this.Plugin.Config.Save();
+            }
+
+            var onePlayerPer = filter[SearchAreaFlags.OnePlayerPerJob];
+            if (ImGui.Checkbox("One player per job", ref onePlayerPer)) {
+                filter[SearchAreaFlags.OnePlayerPerJob] = onePlayerPer;
+                this.Plugin.Config.Save();
+            }
 
             ImGui.EndTabItem();
         }
@@ -367,8 +457,8 @@ namespace BetterPartyFinder {
                 UiCategory.DutyRoulette => listing.DutyType == DutyType.Roulette && isDuty && !cr.GetRow(listing.RawDuty).Unknown10,
                 UiCategory.Dungeons => isNormalDuty && listing.Duty.Value.ContentType.Row == (uint) ContentType2.Dungeons,
                 UiCategory.Guildhests => isNormalDuty && listing.Duty.Value.ContentType.Row == (uint) ContentType2.Guildhests,
-                UiCategory.Trials => isNormalDuty && listing.Duty.Value.ContentType.Row == (uint) ContentType2.Trials,
-                UiCategory.Raids => isNormalDuty && listing.Duty.Value.ContentType.Row == (uint) ContentType2.Raids,
+                UiCategory.Trials => isNormalDuty && !listing.Duty.Value.HighEndDuty && listing.Duty.Value.ContentType.Row == (uint) ContentType2.Trials,
+                UiCategory.Raids => isNormalDuty && !listing.Duty.Value.HighEndDuty && listing.Duty.Value.ContentType.Row == (uint) ContentType2.Raids,
                 UiCategory.HighEndDuty => isNormalDuty && listing.Duty.Value.HighEndDuty,
                 UiCategory.Pvp => listing.DutyType == DutyType.Roulette && isDuty && cr.GetRow(listing.RawDuty).Unknown10
                                   || isNormalDuty && listing.Duty.Value.ContentType.Row == (uint) ContentType2.Pvp,

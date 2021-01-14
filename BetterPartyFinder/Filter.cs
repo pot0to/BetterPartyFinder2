@@ -47,6 +47,28 @@ namespace BetterPartyFinder {
                 return false;
             }
 
+            // filter based on restrictions
+            // make sure the listing doesn't contain any of the toggled off search areas
+            if (((listing.SearchArea ^ filter.SearchArea) & ~filter.SearchArea) > 0) {
+                return false;
+            }
+
+            if (!listing[filter.LootRule]) {
+                return false;
+            }
+
+            if (((listing.DutyFinderSettings ^ filter.DutyFinderSettings) & ~filter.DutyFinderSettings) > 0) {
+                return false;
+            }
+
+            if (!listing[filter.Conditions]) {
+                return false;
+            }
+
+            if (!listing[filter.Objectives]) {
+                return false;
+            }
+
             // filter based on category (slow)
             if (!filter.Categories.Any(category => category.ListingMatches(this.Plugin.Interface.Data, listing))) {
                 return false;

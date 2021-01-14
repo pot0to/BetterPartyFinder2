@@ -22,22 +22,32 @@ namespace BetterPartyFinder {
         public IReadOnlyCollection<PartyFinderSlot> Slots => this._slots;
 
         private readonly byte _objective;
+        public ObjectiveFlags Objective => (ObjectiveFlags) this._objective;
+
         private readonly byte _conditions;
+        public ConditionFlags Conditions => (ConditionFlags) this._conditions;
+
         private readonly byte _dutyFinderSettings;
+        public DutyFinderSettingsFlags DutyFinderSettings => (DutyFinderSettingsFlags) this._dutyFinderSettings;
+
         private readonly byte _lootRules;
+        public LootRuleFlags LootRules => (LootRuleFlags) this._lootRules;
+
         private readonly byte _searchArea;
+        public SearchAreaFlags SearchArea => (SearchAreaFlags) this._searchArea;
 
         private readonly PartyFinderSlot[] _slots;
 
-        public bool this[ObjectiveFlags flag] => (this._objective & (uint) flag) > 0;
+        public bool this[ObjectiveFlags flag] => this._objective == 0 || (this._objective & (uint) flag) > 0;
 
-        public bool this[ConditionFlags flag] => (this._conditions & (uint) flag) > 0;
 
-        public bool this[DutyFinderSettingsFlags flag] => (this._dutyFinderSettings & (uint) flag) > 0;
+        public bool this[ConditionFlags flag] => this._conditions == 0 || (this._conditions & (uint) flag) > 0;
 
-        public bool this[LootRuleFlags flag] => (this._lootRules & (uint) flag) > 0;
+        public bool this[DutyFinderSettingsFlags flag] => this._dutyFinderSettings == 0 || (this._dutyFinderSettings & (uint) flag) > 0;
 
-        public bool this[SearchAreaFlags flag] => (this._searchArea & (uint) flag) > 0;
+        public bool this[LootRuleFlags flag] => this._lootRules == 0 || (this._lootRules & (uint) flag) > 0;
+
+        public bool this[SearchAreaFlags flag] => this._searchArea == 0 || (this._searchArea & (uint) flag) > 0;
 
         internal PartyFinderListing(PfListing listing, DataManager dataManager) {
             this.Id = listing.id;
@@ -91,7 +101,7 @@ namespace BetterPartyFinder {
     }
 
     [Flags]
-    public enum SearchAreaFlags {
+    public enum SearchAreaFlags : uint {
         DataCentre = 1 << 0,
         Private = 1 << 1,
         Unknown2 = 1 << 2, // set for copied factory pf
@@ -131,7 +141,7 @@ namespace BetterPartyFinder {
     }
 
     [Flags]
-    public enum ObjectiveFlags {
+    public enum ObjectiveFlags : uint {
         None = 0,
         DutyCompletion = 1,
         Practice = 2,
@@ -139,21 +149,22 @@ namespace BetterPartyFinder {
     }
 
     [Flags]
-    public enum ConditionFlags {
+    public enum ConditionFlags : uint {
         None = 1,
         DutyComplete = 2,
         DutyIncomplete = 4,
     }
 
     [Flags]
-    public enum DutyFinderSettingsFlags {
+    public enum DutyFinderSettingsFlags : uint {
         None = 0,
-        UndersizedParty = 1,
-        MinimumItemLevel = 2,
+        UndersizedParty = 1 << 0,
+        MinimumItemLevel = 1 << 1,
+        SilenceEcho = 1 << 2,
     }
 
     [Flags]
-    public enum LootRuleFlags {
+    public enum LootRuleFlags : uint {
         None = 0,
         GreedOnly = 1,
         Lootmaster = 2,

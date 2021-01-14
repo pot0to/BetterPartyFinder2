@@ -14,7 +14,7 @@ namespace BetterPartyFinder {
         public void Initialize(DalamudPluginInterface pluginInterface) {
             this.Interface = pluginInterface;
 
-            this.Config = (Configuration?) this.Interface.GetPluginConfig() ?? new Configuration();
+            this.Config = Configuration.Load(this) ?? new Configuration();
             this.Config.Initialise(this);
 
             this.Functions = new GameFunctions(this);
