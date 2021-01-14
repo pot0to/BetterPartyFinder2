@@ -92,7 +92,10 @@ namespace BetterPartyFinder {
             ImGui.SameLine();
 
             if (IconButton(FontAwesomeIcon.Plus, "add-preset")) {
-                this.Plugin.Config.Presets.Add(Guid.NewGuid(), new ConfigurationFilter());
+                var id = Guid.NewGuid();
+
+                this.Plugin.Config.Presets.Add(id, new ConfigurationFilter());
+                this.Plugin.Config.SelectedPreset = id;
                 this.Plugin.Config.Save();
             }
 
