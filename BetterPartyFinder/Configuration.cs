@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Dalamud.Configuration;
 
 namespace BetterPartyFinder {
@@ -22,11 +23,18 @@ namespace BetterPartyFinder {
 
     public class ConfigurationFilter {
         public string Name { get; set; } = "<unnamed preset>";
-        public ListMode ListMode { get; set; } = ListMode.Blacklist;
-        public List<uint> Duties { get; set; } = new();
+
+        public ListMode DutiesMode { get; set; } = ListMode.Blacklist;
+        public HashSet<uint> Duties { get; set; } = new();
+
+        public HashSet<UiCategory> Categories { get; set; } = Enum.GetValues(typeof(UiCategory))
+            .Cast<UiCategory>()
+            .ToHashSet();
+
         public List<JobFlags> Jobs { get; set; } = new();
         // default to true because that's the PF's default
         // use nosol if trying to avoid spam
+
         public bool AllowHugeItemLevel { get; set; } = true;
         public uint? MinItemLevel { get; set; }
         public uint? MaxItemLevel { get; set; }

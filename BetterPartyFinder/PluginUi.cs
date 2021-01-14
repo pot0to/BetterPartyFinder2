@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Drawing;
 using System.Linq;
 using System.Numerics;
+using Dalamud.Data;
 using Dalamud.Interface;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
@@ -169,7 +169,21 @@ namespace BetterPartyFinder {
                 return;
             }
 
-            ImGui.TextUnformatted("Nothing here yet");
+            foreach (var category in (UiCategory[]) Enum.GetValues(typeof(UiCategory))) {
+                var selected = filter.Categories.Contains(category);
+                if (!ImGui.Selectable(category.Name(this.Plugin.Interface.Data), ref selected)) {
+                    continue;
+                }
+
+                if (selected) {
+                    filter.Categories.Add(category);
+                } else {
+                    filter.Categories.Remove(category);
+                }
+
+                this.Plugin.Config.Save();
+            }
+
 
             ImGui.EndTabItem();
         }
@@ -183,11 +197,11 @@ namespace BetterPartyFinder {
                 "Show ONLY these duties",
                 "Do NOT show these duties",
             };
-            var listModeIdx = filter.ListMode == ListMode.Blacklist ? 1 : 0;
+            var listModeIdx = filter.DutiesMode == ListMode.Blacklist ? 1 : 0;
             ImGui.TextUnformatted("List mode");
             ImGui.PushItemWidth(-1);
             if (ImGui.Combo("###list-mode", ref listModeIdx, listModeStrings, listModeStrings.Length)) {
-                filter.ListMode = listModeIdx == 0 ? ListMode.Whitelist : ListMode.Blacklist;
+                filter.DutiesMode = listModeIdx == 0 ? ListMode.Whitelist : ListMode.Blacklist;
                 this.Plugin.Config.Save();
             }
 
@@ -294,6 +308,106 @@ namespace BetterPartyFinder {
             ImGui.TextUnformatted("Nothing here yet");
 
             ImGui.EndTabItem();
+        }
+    }
+
+    public enum UiCategory {
+        None,
+        DutyRoulette,
+        Dungeons,
+        Guildhests,
+        Trials,
+        Raids,
+        HighEndDuty,
+        Pvp,
+        QuestBattles,
+        Fates,
+        TreasureHunt,
+        TheHunt,
+        GatheringForays,
+        DeepDungeons,
+        AdventuringForays,
+    }
+
+    internal static class UiCategoryExt {
+        internal static string? Name(this UiCategory category, DataManager data) {
+            var ct = data.GetExcelSheet<ContentType>();
+            var addon = data.GetExcelSheet<Addon>();
+
+            return category switch {
+                UiCategory.None => addon.GetRow(1_562).Text.ToString(), // best guess
+                UiCategory.DutyRoulette => ct.GetRow((uint) ContentType2.DutyRoulette).Name.ToString(),
+                UiCategory.Dungeons => ct.GetRow((uint) ContentType2.Dungeons).Name.ToString(),
+                UiCategory.Guildhests => ct.GetRow((uint) ContentType2.Guildhests).Name.ToString(),
+                UiCategory.Trials => ct.GetRow((uint) ContentType2.Trials).Name.ToString(),
+                UiCategory.Raids => ct.GetRow((uint) ContentType2.Raids).Name.ToString(),
+                UiCategory.HighEndDuty => addon.GetRow(10_822).Text.ToString(), // best guess
+                UiCategory.Pvp => ct.GetRow((uint) ContentType2.Pvp).Name.ToString(),
+                UiCategory.QuestBattles => ct.GetRow((uint) ContentType2.QuestBattles).Name.ToString(),
+                UiCategory.Fates => ct.GetRow((uint) ContentType2.Fates).Name.ToString(),
+                UiCategory.TreasureHunt => ct.GetRow((uint) ContentType2.TreasureHunt).Name.ToString(),
+                UiCategory.TheHunt => addon.GetRow(8_613).Text.ToString(),
+                UiCategory.GatheringForays => addon.GetRow(2_306).Text.ToString(),
+                UiCategory.DeepDungeons => ct.GetRow((uint) ContentType2.DeepDungeons).Name.ToString(),
+                UiCategory.AdventuringForays => addon.GetRow(2_307).Text.ToString(),
+                _ => null,
+            };
+        }
+
+        internal static bool ListingMatches(this UiCategory category, DataManager data, PartyFinderListing listing) {
+            var cr = data.GetExcelSheet<ContentRoulette>();
+
+            var isDuty = listing.Category == Category.Duty;
+            var isNormal = listing.DutyType == DutyType.Normal;
+            var isOther = listing.DutyType == DutyType.Other;
+            var isNormalDuty = isNormal && isDuty;
+
+            return category switch {
+                UiCategory.None => isOther && isDuty && listing.RawDuty == 0,
+                UiCategory.DutyRoulette => listing.DutyType == DutyType.Roulette && isDuty && !cr.GetRow(listing.RawDuty).Unknown10,
+                UiCategory.Dungeons => isNormalDuty && listing.Duty.Value.ContentType.Row == (uint) ContentType2.Dungeons,
+                UiCategory.Guildhests => isNormalDuty && listing.Duty.Value.ContentType.Row == (uint) ContentType2.Guildhests,
+                UiCategory.Trials => isNormalDuty && listing.Duty.Value.ContentType.Row == (uint) ContentType2.Trials,
+                UiCategory.Raids => isNormalDuty && listing.Duty.Value.ContentType.Row == (uint) ContentType2.Raids,
+                UiCategory.HighEndDuty => isNormalDuty && listing.Duty.Value.HighEndDuty,
+                UiCategory.Pvp => listing.DutyType == DutyType.Roulette && isDuty && cr.GetRow(listing.RawDuty).Unknown10
+                                  || isNormalDuty && listing.Duty.Value.ContentType.Row == (uint) ContentType2.Pvp,
+                UiCategory.QuestBattles => isOther && listing.Category == Category.QuestBattles,
+                UiCategory.Fates => isOther && listing.Category == Category.Fates,
+                UiCategory.TreasureHunt => isOther && listing.Category == Category.TreasureHunt,
+                UiCategory.TheHunt => isOther && listing.Category == Category.TheHunt,
+                UiCategory.GatheringForays => isNormal && listing.Category == Category.GatheringForays,
+                UiCategory.DeepDungeons => isOther && listing.Category == Category.DeepDungeons,
+                UiCategory.AdventuringForays => isNormal && listing.Category == Category.AdventuringForays,
+                _ => false,
+            };
+        }
+
+        private enum ContentType2 {
+            DutyRoulette = 1,
+            Dungeons = 2,
+            Guildhests = 3,
+            Trials = 4,
+            Raids = 5,
+            Pvp = 6,
+            QuestBattles = 7,
+            Fates = 8,
+            TreasureHunt = 9,
+            Levequests = 10,
+            GrandCompany = 11,
+            Companions = 12,
+            BeastTribeQuests = 13,
+            OverallCompletion = 14,
+            PlayerCommendation = 15,
+            DisciplesOfTheLand = 16,
+            DisciplesOfTheHand = 17,
+            RetainerVentures = 18,
+            GoldSaucer = 19,
+            DeepDungeons = 21,
+            WondrousTails = 24,
+            CustomDeliveries = 25,
+            Eureka = 26,
+            UltimateRaids = 28,
         }
     }
 }

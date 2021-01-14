@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace BetterPartyFinder {
     public class Filter : IDisposable {
@@ -30,7 +31,7 @@ namespace BetterPartyFinder {
             if (filter.Duties.Count > 0 && listing.DutyType == DutyType.Normal) {
                 var inList = filter.Duties.Contains(listing.RawDuty);
                 // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
-                switch (filter.ListMode) {
+                switch (filter.DutiesMode) {
                     case ListMode.Blacklist when inList:
                     case ListMode.Whitelist when !inList:
                         return false;
@@ -43,6 +44,11 @@ namespace BetterPartyFinder {
             }
 
             if (filter.MaxItemLevel != null && listing.MinimumItemLevel > filter.MaxItemLevel) {
+                return false;
+            }
+
+            // filter based on category (slow)
+            if (!filter.Categories.Any(category => category.ListingMatches(this.Plugin.Interface.Data, listing))) {
                 return false;
             }
 
