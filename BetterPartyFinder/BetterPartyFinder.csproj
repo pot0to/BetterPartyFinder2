@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net48</TargetFramework>
+        <Version>1.0.0</Version>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Reference Include="Dalamud, Version=5.2.2.0, Culture=neutral, PublicKeyToken=null">
+            <HintPath>$(AppData)\XIVLauncher\addon\Hooks\Dalamud.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="ImGui.NET, Version=1.72.0.0, Culture=neutral, PublicKeyToken=null">
+            <HintPath>$(AppData)\XIVLauncher\addon\Hooks\ImGui.NET.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="ImGuiScene, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+            <HintPath>$(AppData)\XIVLauncher\addon\Hooks\ImGuiScene.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="Lumina, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null">
+            <HintPath>$(AppData)\XIVLauncher\addon\Hooks\Lumina.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="Lumina.Excel, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+            <HintPath>$(AppData)\XIVLauncher\addon\Hooks\Lumina.Excel.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
+            <HintPath>$(AppData)\XIVLauncher\addon\Hooks\System.Memory.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="DalamudPackager" Version="1.2.0" />
+    </ItemGroup>
+
+</Project>

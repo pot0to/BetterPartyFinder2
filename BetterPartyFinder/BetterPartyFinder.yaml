@@ -1,0 +1,14 @@
+﻿author: ascclemens
+name: Better Party Finder
+description: |-
+  Filter the party finder better.
+
+  All vanilla filtering is available, plus:
+
+  - Create filter presets to easily switch between
+  - Whitelist/blacklist specific duties
+  - Add character names to hide PFs from
+  - Remove PFs above maximum item level
+  - Filter on item level range
+  - Filter on multiple jobs (ex. MCH + GNB available)
+  - Only show PFs that your party can join
