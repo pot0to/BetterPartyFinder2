@@ -55,6 +55,8 @@ namespace BetterPartyFinder {
         }
 
         private void Draw() {
+            ImGui.SetNextWindowSize(new Vector2(550f, 510f), ImGuiCond.FirstUseEver);
+
             if (!ImGui.Begin($"{this.Plugin.Name} settings")) {
                 return;
             }
