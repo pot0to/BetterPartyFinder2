@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Data;
@@ -25,6 +26,8 @@ namespace BetterPartyFinder {
         private string DutySearchQuery { get; set; } = string.Empty;
 
         private string PresetName { get; set; } = string.Empty;
+
+        private bool[] _openSlots = new bool[8];
 
         internal PluginUi(Plugin plugin) {
             this.Plugin = plugin;
@@ -295,7 +298,65 @@ namespace BetterPartyFinder {
                 return;
             }
 
-            ImGui.TextUnformatted("Nothing here yet");
+            if (ImGui.Button("Add slot")) {
+                filter.Jobs.Add(0);
+                this.Plugin.Config.Save();
+            }
+
+            var toRemove = new HashSet<int>();
+
+            for (var i = 0; i < filter.Jobs.Count; i++) {
+                var slot = filter.Jobs[i];
+
+                if (!ImGui.CollapsingHeader($"Slot {i + 1}")) {
+                    continue;
+                }
+
+                if (ImGui.Button("Select all")) {
+                    filter.Jobs[i] = Enum.GetValues(typeof(JobFlags))
+                        .Cast<JobFlags>()
+                        .Aggregate(slot, (current, job) => current | job);
+                    this.Plugin.Config.Save();
+                }
+
+                ImGui.SameLine();
+
+                if (ImGui.Button("Clear")) {
+                    filter.Jobs[i] = 0;
+                    this.Plugin.Config.Save();
+                }
+
+                ImGui.SameLine();
+
+                if (ImGui.Button("Delete")) {
+                    toRemove.Add(i);
+                }
+
+                foreach (var job in (JobFlags[]) Enum.GetValues(typeof(JobFlags))) {
+                    var selected = (slot & job) > 0;
+                    if (!ImGui.Selectable(job.ClassJob(this.Plugin.Interface.Data)?.Name ?? "???", ref selected)) {
+                        continue;
+                    }
+
+                    if (selected) {
+                        slot |= job;
+                    } else {
+                        slot &= ~job;
+                    }
+
+                    filter.Jobs[i] = slot;
+
+                    this.Plugin.Config.Save();
+                }
+            }
+
+            foreach (var idx in toRemove) {
+                filter.Jobs.RemoveAt(idx);
+            }
+
+            if (toRemove.Count > 0) {
+                this.Plugin.Config.Save();
+            }
 
             ImGui.EndTabItem();
         }

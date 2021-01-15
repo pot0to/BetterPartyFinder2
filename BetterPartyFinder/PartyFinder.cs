@@ -19,6 +19,7 @@ namespace BetterPartyFinder {
         public bool BeginnersWelcome { get; }
         public ushort SecondsRemaining { get; }
         public ushort MinimumItemLevel { get; }
+        public byte SlotsAvailable { get; }
         public IReadOnlyCollection<PartyFinderSlot> Slots => this._slots;
 
         private readonly byte _objective;
@@ -67,6 +68,7 @@ namespace BetterPartyFinder {
             this.BeginnersWelcome = listing.beginnersWelcome == 1;
             this.SecondsRemaining = listing.secondsRemaining;
             this.MinimumItemLevel = listing.minimumItemLevel;
+            this.SlotsAvailable = listing.numSlots;
 
             this._objective = listing.objective;
             this._conditions = listing.conditions;
@@ -127,7 +129,7 @@ namespace BetterPartyFinder {
         Lancer = 1 << 4,
         Archer = 1 << 5,
         Conjurer = 1 << 6,
-        Thamaturge = 1 << 7,
+        Thaumaturge = 1 << 7,
         Paladin = 1 << 8,
         Monk = 1 << 9,
         Warrior = 1 << 10,
@@ -148,6 +150,45 @@ namespace BetterPartyFinder {
         BlueMage = 1 << 25,
         Gunbreaker = 1 << 26,
         Dancer = 1 << 27,
+    }
+
+    internal static class JobFlagsExt {
+        internal static ClassJob? ClassJob(this JobFlags job, DataManager data) {
+            var jobs = data.GetExcelSheet<ClassJob>();
+
+            uint? row = job switch {
+                JobFlags.Gladiator => 1,
+                JobFlags.Pugilist => 2,
+                JobFlags.Marauder => 3,
+                JobFlags.Lancer => 4,
+                JobFlags.Archer => 5,
+                JobFlags.Conjurer => 6,
+                JobFlags.Thaumaturge => 7,
+                JobFlags.Paladin => 19,
+                JobFlags.Monk => 20,
+                JobFlags.Warrior => 21,
+                JobFlags.Dragoon => 22,
+                JobFlags.Bard => 23,
+                JobFlags.WhiteMage => 24,
+                JobFlags.BlackMage => 25,
+                JobFlags.Arcanist => 26,
+                JobFlags.Summoner => 27,
+                JobFlags.Scholar => 28,
+                JobFlags.Rogue => 29,
+                JobFlags.Ninja => 30,
+                JobFlags.Machinist => 31,
+                JobFlags.DarkKnight => 32,
+                JobFlags.Astrologian => 33,
+                JobFlags.Samurai => 34,
+                JobFlags.RedMage => 35,
+                JobFlags.BlueMage => 36,
+                JobFlags.Gunbreaker => 37,
+                JobFlags.Dancer => 38,
+                _ => null,
+            };
+
+            return row == null ? null : jobs.GetRow((uint) row);
+        }
     }
 
     [Flags]

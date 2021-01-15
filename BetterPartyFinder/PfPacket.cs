@@ -71,13 +71,17 @@ namespace BetterPartyFinder {
         internal readonly ushort homeWorld;
         internal readonly ushort currentWorld;
 
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
-        private readonly byte[] header9; // 02 XX 01 00 in every pf I've examined
+        private readonly byte header9;
+
+        internal readonly byte numSlots;
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
+        private readonly byte[] header10;
 
         internal readonly byte searchArea;
 
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 5)]
-        private readonly byte[] header10; // 00 01 00 00 00 for every pf except alliance raids where it's 01 03 00 00 00 (second byte # parties?)
+        private readonly byte[] header11; // 00 01 00 00 00 for every pf except alliance raids where it's 01 03 00 00 00 (second byte # parties?)
 
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
         internal readonly uint[] slots;

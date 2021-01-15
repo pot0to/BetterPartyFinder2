@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BetterPartyFinder {
@@ -72,6 +73,60 @@ namespace BetterPartyFinder {
             // filter based on category (slow)
             if (!filter.Categories.Any(category => category.ListingMatches(this.Plugin.Interface.Data, listing))) {
                 return false;
+            }
+
+            // filter based on jobs (slow?)
+            if (filter.Jobs.Count > 0) {
+                var slots = listing.Slots.ToArray();
+                var present = listing.RawJobsPresent.ToArray();
+
+                // create a list of sets containing the slots each job is able to join
+                var jobs = new HashSet<int>[filter.Jobs.Count];
+                for (var i = 0; i < jobs.Length; i++) {
+                    jobs[i] = new HashSet<int>();
+                }
+
+                for (var idx = 0; idx < filter.Jobs.Count; idx++) {
+                    var wanted = filter.Jobs[idx];
+
+                    for (var i = 0; i < listing.SlotsAvailable; i++) {
+                        // if the slot isn't already full and the job can fit into it, add it to the set
+                        if (present[i] == 0 && slots[i][wanted]) {
+                            jobs[idx].Add(i);
+                        }
+                    }
+
+                    // if this job couldn't match any slot, can't join the party
+                    if (jobs[idx].Count == 0) {
+                        return false;
+                    }
+                }
+
+                // loop through each unique pair of jobs
+                for (var i = 0; i < jobs.Length; i++) {
+                    // ReSharper disable once LoopCanBeConvertedToQuery
+                    for (var j = 0; j < jobs.Length; j++) {
+                        if (i >= j) {
+                            continue;
+                        }
+
+                        var a = jobs[i];
+                        var b = jobs[j];
+
+                        // check if the slots either job can join have overlap
+                        var overlap = a.Intersect(b);
+                        if (!overlap.Any()) {
+                            continue;
+                        }
+
+                        // if there is overlap, check the difference between the sets
+                        // if there is no difference, the party can't be joined
+                        var difference = a.Except(b);
+                        if (!difference.Any()) {
+                            return false;
+                        }
+                    }
+                }
             }
 
             return true;
