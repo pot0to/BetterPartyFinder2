@@ -6,6 +6,7 @@ using Dalamud.Data;
 using Dalamud.Interface;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
+using GameAddon = Dalamud.Game.Internal.Gui.Addon.Addon;
 
 namespace BetterPartyFinder {
     public class PluginUi : IDisposable {
@@ -23,11 +24,23 @@ namespace BetterPartyFinder {
 
         private Plugin Plugin { get; }
 
+        private bool _visible;
+
+        public bool Visible {
+            get => this._visible;
+            set => this._visible = value;
+        }
+
+        private bool _settingsVisible;
+
+        public bool SettingsVisible {
+            get => this._settingsVisible;
+            set => this._settingsVisible = value;
+        }
+
         private string DutySearchQuery { get; set; } = string.Empty;
 
         private string PresetName { get; set; } = string.Empty;
-
-        private bool[] _openSlots = new bool[8];
 
         internal PluginUi(Plugin plugin) {
             this.Plugin = plugin;
@@ -54,10 +67,73 @@ namespace BetterPartyFinder {
             return result;
         }
 
+        private GameAddon? PartyFinderAddon() {
+            return this.Plugin.Interface.Framework.Gui.GetAddonByName("LookingForGroup", 1);
+        }
+
         private void Draw() {
+            this.DrawFiltersWindow();
+            this.DrawSettingsWindow();
+        }
+
+        private void DrawSettingsWindow() {
+            ImGui.SetNextWindowSize(new Vector2(-1f, -1f), ImGuiCond.FirstUseEver);
+
+            if (!this.SettingsVisible || !ImGui.Begin($"{this.Plugin.Name} settings", ref this._settingsVisible)) {
+                return;
+            }
+
+            var openWithPf = this.Plugin.Config.ShowWhenPfOpen;
+            if (ImGui.Checkbox("Open with PF", ref openWithPf)) {
+                this.Plugin.Config.ShowWhenPfOpen = openWithPf;
+                this.Plugin.Config.Save();
+            }
+
+            var sideOptions = new[] {
+                "Left",
+                "Right",
+            };
+            var sideIdx = this.Plugin.Config.WindowSide == WindowSide.Left ? 0 : 1;
+
+            ImGui.TextUnformatted("Side of PF window to dock to");
+            if (ImGui.Combo("###window-side", ref sideIdx, sideOptions, sideOptions.Length)) {
+                this.Plugin.Config.WindowSide = sideIdx switch {
+                    0 => WindowSide.Left,
+                    1 => WindowSide.Right,
+                    _ => this.Plugin.Config.WindowSide,
+                };
+
+                this.Plugin.Config.Save();
+            }
+
+            ImGui.End();
+        }
+
+        private void DrawFiltersWindow() {
             ImGui.SetNextWindowSize(new Vector2(550f, 510f), ImGuiCond.FirstUseEver);
 
-            if (!ImGui.Begin($"{this.Plugin.Name} settings")) {
+            var showWindow = this.Visible;
+            if (!showWindow && this.Plugin.Config.ShowWhenPfOpen) {
+                var addon = this.PartyFinderAddon();
+                if (addon != null && addon.Visible) {
+                    showWindow = true;
+
+                    if (this.Plugin.Config.WindowSide == WindowSide.Right) {
+                        float? width;
+                        try {
+                            width = addon.Width;
+                        } catch (NullReferenceException) {
+                            width = null;
+                        }
+
+                        if (width != null) {
+                            ImGui.SetNextWindowPos(new Vector2(addon.X + addon.Width, addon.Y));
+                        }
+                    }
+                }
+            }
+
+            if (!showWindow || !ImGui.Begin(this.Plugin.Name, ref this._visible)) {
                 return;
             }
 
@@ -142,10 +218,31 @@ namespace BetterPartyFinder {
                 }
             }
 
+            ImGui.SameLine();
+
+            if (IconButton(FontAwesomeIcon.Cog, "settings")) {
+                this.SettingsVisible = true;
+            }
+
             ImGui.Separator();
 
             if (selected != null && this.Plugin.Config.Presets.TryGetValue(selected.Value, out var filter)) {
                 this.DrawPresetConfiguration(filter);
+            }
+
+            if (this.Plugin.Config.ShowWhenPfOpen && this.Plugin.Config.WindowSide == WindowSide.Left) {
+                var addon = this.PartyFinderAddon();
+                var currentWidth = ImGui.GetWindowWidth();
+                float? addonWidth;
+                try {
+                    addonWidth = addon?.Width;
+                } catch (NullReferenceException) {
+                    addonWidth = null;
+                }
+
+                if (addon != null && addonWidth != null) {
+                    ImGui.SetWindowPos(new Vector2(addon.X - currentWidth, addon.Y));
+                }
             }
 
             ImGui.End();

@@ -12,6 +12,9 @@ namespace BetterPartyFinder {
         public Dictionary<Guid, ConfigurationFilter> Presets { get; } = new();
         public Guid? SelectedPreset { get; set; }
 
+        public bool ShowWhenPfOpen { get; set; }
+        public WindowSide WindowSide { get; set; } = WindowSide.Left;
+
         internal static Configuration? Load(Plugin plugin) {
             return (Configuration?) plugin.Interface.GetPluginConfig();
         }
@@ -114,5 +117,10 @@ namespace BetterPartyFinder {
     public enum ListMode {
         Whitelist,
         Blacklist,
+    }
+
+    public enum WindowSide {
+        Left,
+        Right,
     }
 }

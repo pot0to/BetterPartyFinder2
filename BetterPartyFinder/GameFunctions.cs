@@ -48,6 +48,13 @@ namespace BetterPartyFinder {
 
             var needToRewrite = false;
 
+            var raw = Marshal.AllocHGlobal(PacketInfo.PacketSize);
+            Marshal.StructureToPtr(packet, raw, false);
+            var bytes = new byte[PacketInfo.PacketSize];
+            Marshal.Copy(raw, bytes, 0, PacketInfo.PacketSize);
+            PluginLog.Log(string.Join("", bytes.Select(b => b.ToString("x2"))));
+            Marshal.FreeHGlobal(raw);
+
             for (var i = 0; i < packet.listings.Length; i++) {
                 if (packet.listings[i].IsNull()) {
                     continue;
