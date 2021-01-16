@@ -102,6 +102,16 @@ namespace BetterPartyFinder {
                     }
                 }
 
+                // ensure the number of total slots with possibles joins is at least the number of jobs
+                // note that this doesn't make sure it's joinable, see below
+                var numSlots = jobs
+                    .Aggregate((acc, x) => acc.Union(x).ToHashSet())
+                    .Count;
+
+                if (numSlots < jobs.Length) {
+                    return false;
+                }
+
                 // loop through each unique pair of jobs
                 for (var i = 0; i < jobs.Length; i++) {
                     // ReSharper disable once LoopCanBeConvertedToQuery
@@ -115,12 +125,13 @@ namespace BetterPartyFinder {
 
                         // check if the slots either job can join have overlap
                         var overlap = a.Intersect(b);
-                        if (!overlap.Any()) {
+                        if (overlap.Count() != 1) {
                             continue;
                         }
 
                         // if there is overlap, check the difference between the sets
                         // if there is no difference, the party can't be joined
+                        // note that if the overlap is more than one slot, we don't need to check
                         var difference = a.Except(b);
                         if (!difference.Any()) {
                             return false;
