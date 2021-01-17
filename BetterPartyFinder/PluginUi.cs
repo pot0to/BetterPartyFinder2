@@ -283,6 +283,8 @@ namespace BetterPartyFinder {
 
             this.DrawRestrictionsTab(filter);
 
+            this.DrawPlayersTab(filter);
+
             ImGui.EndTabBar();
         }
 
@@ -574,6 +576,65 @@ namespace BetterPartyFinder {
             var onePlayerPer = filter[SearchAreaFlags.OnePlayerPerJob];
             if (ImGui.Checkbox("One player per job", ref onePlayerPer)) {
                 filter[SearchAreaFlags.OnePlayerPerJob] = onePlayerPer;
+                this.Plugin.Config.Save();
+            }
+
+            ImGui.EndTabItem();
+        }
+
+        private int _selectedWorld;
+        private string _playerName = string.Empty;
+
+        private void DrawPlayersTab(ConfigurationFilter filter) {
+            var player = this.Plugin.Interface.ClientState.LocalPlayer;
+
+            if (player == null || !ImGui.BeginTabItem("Players")) {
+                return;
+            }
+
+            ImGui.PushItemWidth(ImGui.GetWindowWidth() / 3f);
+
+            ImGui.InputText("###player-name", ref this._playerName, 64);
+
+            ImGui.SameLine();
+
+            var worlds = Util.WorldsOnDataCentre(this.Plugin.Interface.Data, player)
+                .OrderBy(world => world.Name.RawString)
+                .ToList();
+
+            var worldNames = worlds
+                .Select(world => world.Name.ToString())
+                .ToArray();
+
+            if (ImGui.Combo("###player-world", ref this._selectedWorld, worldNames, worldNames.Length)) {
+            }
+
+            ImGui.PopItemWidth();
+
+            ImGui.SameLine();
+
+            if (IconButton(FontAwesomeIcon.Plus, "add-player")) {
+                var name = this._playerName.Trim();
+                if (name.Length != 0) {
+                    var world = worlds[this._selectedWorld];
+                    filter.Players.Add(new PlayerInfo(name, world.RowId));
+                    this.Plugin.Config.Save();
+                }
+            }
+
+            PlayerInfo? deleting = null;
+
+            foreach (var info in filter.Players) {
+                var world = this.Plugin.Interface.Data.GetExcelSheet<World>().GetRow(info.World);
+                ImGui.TextUnformatted($"{info.Name}@{world?.Name}");
+                ImGui.SameLine();
+                if (IconButton(FontAwesomeIcon.Trash, $"delete-player-{info.GetHashCode()}")) {
+                    deleting = info;
+                }
+            }
+
+            if (deleting != null) {
+                filter.Players.Remove(deleting);
                 this.Plugin.Config.Save();
             }
 

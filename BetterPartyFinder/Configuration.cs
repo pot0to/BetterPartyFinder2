@@ -50,6 +50,8 @@ namespace BetterPartyFinder {
         public uint? MinItemLevel { get; set; }
         public uint? MaxItemLevel { get; set; }
 
+        public HashSet<PlayerInfo> Players { get; set; } = new();
+
         internal bool this[SearchAreaFlags flags] {
             get => (this.SearchArea & flags) > 0;
             set {
@@ -109,6 +111,7 @@ namespace BetterPartyFinder {
             var categories = this.Categories.ToHashSet();
             var duties = this.Duties.ToHashSet();
             var jobs = this.Jobs.ToList();
+            var players = this.Players.Select(info => info.Clone()).ToHashSet();
 
             return new ConfigurationFilter {
                 Categories = categories,
@@ -124,6 +127,7 @@ namespace BetterPartyFinder {
                 MaxItemLevel = this.MaxItemLevel,
                 MinItemLevel = this.MinItemLevel,
                 AllowHugeItemLevel = this.AllowHugeItemLevel,
+                Players = players,
             };
         }
 
@@ -133,6 +137,42 @@ namespace BetterPartyFinder {
                     .Cast<UiCategory>()
                     .ToHashSet(),
             };
+        }
+    }
+
+    public class PlayerInfo {
+        public string Name { get; }
+        public uint World { get; }
+
+        public PlayerInfo(string name, uint world) {
+            this.Name = name;
+            this.World = world;
+        }
+
+        internal PlayerInfo Clone() {
+            return new(this.Name, this.World);
+        }
+
+        private bool Equals(PlayerInfo other) {
+            return this.Name == other.Name && this.World == other.World;
+        }
+
+        public override bool Equals(object? obj) {
+            if (ReferenceEquals(null, obj)) {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj)) {
+                return true;
+            }
+
+            return obj.GetType() == this.GetType() && this.Equals((PlayerInfo) obj);
+        }
+
+        public override int GetHashCode() {
+            unchecked {
+                return (this.Name.GetHashCode() * 397) ^ (int) this.World;
+            }
         }
     }
 

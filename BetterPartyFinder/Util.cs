@@ -1,6 +1,8 @@
-﻿using System.Globalization;
+﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Dalamud.Data;
+using Dalamud.Game.ClientState.Actors.Types;
 using Lumina.Excel.GeneratedSheets;
 
 namespace BetterPartyFinder {
@@ -24,6 +26,12 @@ namespace BetterPartyFinder {
 
         internal static bool ContainsIgnoreCase(this string haystack, string needle) {
             return CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle, CompareOptions.IgnoreCase) >= 0;
+        }
+
+        internal static IEnumerable<World> WorldsOnDataCentre(DataManager data, PlayerCharacter character) {
+            var dcRow = character.HomeWorld.GameData.DataCenter.Row;
+            return data.GetExcelSheet<World>()
+                .Where(world => world.IsPublic && world.DataCenter.Row == dcRow);
         }
     }
 }

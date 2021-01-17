@@ -140,6 +140,13 @@ namespace BetterPartyFinder {
                 }
             }
 
+            // filter based on player
+            if (filter.Players.Count > 0) {
+                if (filter.Players.Any(info => info.Name == listing.Name && info.World == listing.HomeWorld.Value.RowId)) {
+                    return false;
+                }
+            }
+
             return true;
         }
 
