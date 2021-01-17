@@ -46,10 +46,16 @@ namespace BetterPartyFinder {
             this.Plugin = plugin;
 
             this.Plugin.Interface.UiBuilder.OnBuildUi += this.Draw;
+            this.Plugin.Interface.UiBuilder.OnOpenConfigUi += this.OnOpenConfig;
         }
 
         public void Dispose() {
             this.Plugin.Interface.UiBuilder.OnBuildUi -= this.Draw;
+            this.Plugin.Interface.UiBuilder.OnOpenConfigUi -= this.OnOpenConfig;
+        }
+
+        private void OnOpenConfig(object sender, EventArgs e) {
+            this.Visible = !this.Visible;
         }
 
         private static bool IconButton(FontAwesomeIcon icon, string? id = null) {
