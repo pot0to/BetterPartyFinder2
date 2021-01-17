@@ -105,6 +105,28 @@ namespace BetterPartyFinder {
             }
         }
 
+        internal ConfigurationFilter Clone() {
+            var categories = this.Categories.ToHashSet();
+            var duties = this.Duties.ToHashSet();
+            var jobs = this.Jobs.ToList();
+
+            return new ConfigurationFilter {
+                Categories = categories,
+                Conditions = this.Conditions,
+                Duties = duties,
+                Jobs = jobs,
+                Name = string.Copy(this.Name),
+                Objectives = this.Objectives,
+                DutiesMode = this.DutiesMode,
+                LootRule = this.LootRule,
+                SearchArea = this.SearchArea,
+                DutyFinderSettings = this.DutyFinderSettings,
+                MaxItemLevel = this.MaxItemLevel,
+                MinItemLevel = this.MinItemLevel,
+                AllowHugeItemLevel = this.AllowHugeItemLevel,
+            };
+        }
+
         internal static ConfigurationFilter Create() {
             return new() {
                 Categories = Enum.GetValues(typeof(UiCategory))

@@ -220,6 +220,20 @@ namespace BetterPartyFinder {
 
             ImGui.SameLine();
 
+            if (IconButton(FontAwesomeIcon.Copy, "copy") && selected != null) {
+                if (this.Plugin.Config.Presets.TryGetValue(selected.Value, out var copyFilter)) {
+                    var guid = Guid.NewGuid();
+
+                    var copied = copyFilter.Clone();
+                    copied.Name += " (copy)";
+                    this.Plugin.Config.Presets.Add(guid, copied);
+                    this.Plugin.Config.SelectedPreset = guid;
+                    this.Plugin.Config.Save();
+                }
+            }
+
+            ImGui.SameLine();
+
             if (IconButton(FontAwesomeIcon.Cog, "settings")) {
                 this.SettingsVisible = true;
             }
