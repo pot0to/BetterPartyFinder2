@@ -20,7 +20,7 @@ namespace BetterPartyFinder {
         public ushort SecondsRemaining { get; }
         public ushort MinimumItemLevel { get; }
         public byte SlotsAvailable { get; }
-        public IReadOnlyCollection<PartyFinderSlot> Slots => this._slots;
+        public IEnumerable<PartyFinderSlot> Slots => this._slots;
 
         private readonly byte _objective;
         public ObjectiveFlags Objective => (ObjectiveFlags) this._objective;
@@ -40,7 +40,7 @@ namespace BetterPartyFinder {
         private readonly PartyFinderSlot[] _slots;
 
         private readonly byte[] _jobsPresent;
-        internal IReadOnlyCollection<byte> RawJobsPresent => this._jobsPresent;
+        internal IEnumerable<byte> RawJobsPresent => this._jobsPresent;
         internal IReadOnlyCollection<Lazy<ClassJob?>> JobsPresent { get; }
 
         public bool this[ObjectiveFlags flag] => this._objective == 0 || (this._objective & (uint) flag) > 0;
