@@ -76,7 +76,7 @@ namespace BetterPartyFinder {
             }
 
             // filter based on jobs (slow?)
-            if (filter.Jobs.Count > 0) {
+            if (filter.Jobs.Count > 0 && !listing[SearchAreaFlags.AllianceRaid]) {
                 var slots = listing.Slots.ToArray();
                 var present = listing.RawJobsPresent.ToArray();
 

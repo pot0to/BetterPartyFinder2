@@ -9,14 +9,14 @@ namespace BetterPartyFinder {
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct PfPacket {
+    public readonly struct PfPacket {
         private readonly int unk0;
 
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
         private readonly byte[] padding1;
 
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
-        public PfListing[] listings;
+        public readonly PfListing[] listings;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -80,8 +80,12 @@ namespace BetterPartyFinder {
 
         internal readonly byte searchArea;
 
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 5)]
-        private readonly byte[] header11; // 00 01 00 00 00 for every pf except alliance raids where it's 01 03 00 00 00 (second byte # parties?)
+        private readonly byte header11;
+
+        internal readonly byte numParties;
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
+        private readonly byte[] header12; // 00 00 00 always. maybe numParties is a u32?
 
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
         internal readonly uint[] slots;

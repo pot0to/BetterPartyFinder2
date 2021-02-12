@@ -19,6 +19,7 @@ namespace BetterPartyFinder {
         public bool BeginnersWelcome { get; }
         public ushort SecondsRemaining { get; }
         public ushort MinimumItemLevel { get; }
+        public byte Parties { get; }
         public byte SlotsAvailable { get; }
         public IEnumerable<PartyFinderSlot> Slots => this._slots;
 
@@ -68,6 +69,7 @@ namespace BetterPartyFinder {
             this.BeginnersWelcome = listing.beginnersWelcome == 1;
             this.SecondsRemaining = listing.secondsRemaining;
             this.MinimumItemLevel = listing.minimumItemLevel;
+            this.Parties = listing.numParties;
             this.SlotsAvailable = listing.numSlots;
 
             this._objective = listing.objective;
@@ -116,7 +118,7 @@ namespace BetterPartyFinder {
     public enum SearchAreaFlags : uint {
         DataCentre = 1 << 0,
         Private = 1 << 1,
-        Unknown2 = 1 << 2, // set for copied factory pf
+        AllianceRaid = 1 << 2,
         World = 1 << 3,
         OnePlayerPerJob = 1 << 5,
     }
