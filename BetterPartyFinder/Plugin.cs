@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using Dalamud.Plugin;
+﻿using Dalamud.Plugin;
 
 namespace BetterPartyFinder {
     public class Plugin : IDalamudPlugin {
@@ -24,7 +23,7 @@ namespace BetterPartyFinder {
             this.Commands = new Commands(this);
 
             // start task to determine maximum item level (based on max chestpiece)
-            Task.Run(() => Util.CalculateMaxItemLevel(this.Interface.Data));
+            Util.CalculateMaxItemLevel(this.Interface.Data);
         }
 
         public void Dispose() {
