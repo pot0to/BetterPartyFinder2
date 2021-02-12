@@ -118,29 +118,26 @@ namespace BetterPartyFinder {
         private void DrawFiltersWindow() {
             ImGui.SetNextWindowSize(new Vector2(550f, 510f), ImGuiCond.FirstUseEver);
 
-            var showWindow = this.Visible;
-            if (!showWindow && this.Plugin.Config.ShowWhenPfOpen) {
-                var addon = this.PartyFinderAddon();
-                if (addon != null && addon.Visible) {
-                    showWindow = true;
+            var addon = this.Plugin.Config.ShowWhenPfOpen ? this.PartyFinderAddon() : null;
 
-                    if (this.Plugin.Config.WindowSide == WindowSide.Right) {
-                        float? width;
-                        try {
-                            width = addon.Width;
-                        } catch (NullReferenceException) {
-                            width = null;
-                        }
-
-                        if (width != null) {
-                            ImGui.SetNextWindowPos(new Vector2(addon.X + addon.Width, addon.Y));
-                        }
-                    }
-                }
-            }
+            var showWindow = this.Visible || addon?.Visible == true;
 
             if (!showWindow || !ImGui.Begin(this.Plugin.Name, ref this._visible)) {
+                if (ImGui.IsWindowCollapsed()) {
+                    if (addon != null && addon.Visible) {
+                        ImGui.SetWindowPos(new Vector2(addon.X, addon.Y - ImGui.GetFrameHeight()));
+                    }
+                }
+
                 return;
+            }
+
+            if (addon != null && this.Plugin.Config.WindowSide == WindowSide.Right) {
+                try {
+                    ImGui.SetWindowPos(new Vector2(addon.X + addon.Width, addon.Y));
+                } catch (NullReferenceException) {
+                    // ignore
+                }
             }
 
             var selected = this.Plugin.Config.SelectedPreset;
@@ -250,18 +247,14 @@ namespace BetterPartyFinder {
                 this.DrawPresetConfiguration(filter);
             }
 
-            if (this.Plugin.Config.ShowWhenPfOpen && this.Plugin.Config.WindowSide == WindowSide.Left) {
-                var addon = this.PartyFinderAddon();
-                var currentWidth = ImGui.GetWindowWidth();
-                float? addonWidth;
+            if (addon != null && this.Plugin.Config.WindowSide == WindowSide.Left) {
                 try {
-                    addonWidth = addon?.Width;
-                } catch (NullReferenceException) {
-                    addonWidth = null;
-                }
-
-                if (addon != null && addonWidth != null) {
+                    _ = addon.Width;
+                    // only continue if width is set, meaning addon is initialised
+                    var currentWidth = ImGui.GetWindowWidth();
                     ImGui.SetWindowPos(new Vector2(addon.X - currentWidth, addon.Y));
+                } catch (NullReferenceException) {
+                    // ignore
                 }
             }
 
