@@ -123,10 +123,14 @@ namespace BetterPartyFinder {
             var showWindow = this.Visible || addon?.Visible == true;
 
             if (!showWindow || !ImGui.Begin(this.Plugin.Name, ref this._visible)) {
-                if (ImGui.IsWindowCollapsed()) {
-                    if (addon != null && addon.Visible) {
-                        ImGui.SetWindowPos(new Vector2(addon.X, addon.Y - ImGui.GetFrameHeight()));
+                if (ImGui.IsWindowCollapsed() && addon != null && addon.Visible) {
+                    // wait until addon is initialised to show
+                    try {
+                        _ = addon.Width;
+                    } catch (NullReferenceException) {
+                        return;
                     }
+                    ImGui.SetWindowPos(new Vector2(addon.X, addon.Y - ImGui.GetFrameHeight()));
                 }
 
                 return;
