@@ -130,6 +130,7 @@ namespace BetterPartyFinder {
                     } catch (NullReferenceException) {
                         return;
                     }
+
                     ImGui.SetWindowPos(new Vector2(addon.X, addon.Y - ImGui.GetFrameHeight()));
                 }
 
@@ -163,6 +164,8 @@ namespace BetterPartyFinder {
                 if (ImGui.Selectable("<none>")) {
                     this.Plugin.Config.SelectedPreset = null;
                     this.Plugin.Config.Save();
+
+                    this.Plugin.Functions.RequestPartyFinderListings();
                 }
 
                 foreach (var preset in this.Plugin.Config.Presets) {
@@ -172,6 +175,8 @@ namespace BetterPartyFinder {
 
                     this.Plugin.Config.SelectedPreset = preset.Key;
                     this.Plugin.Config.Save();
+
+                    this.Plugin.Functions.RequestPartyFinderListings();
                 }
 
                 ImGui.EndCombo();

@@ -6,10 +6,10 @@ namespace BetterPartyFinder {
 
         internal DalamudPluginInterface Interface { get; private set; } = null!;
         internal Configuration Config { get; private set; } = null!;
-        internal GameFunctions Functions { get; private set; } = null!;
         private Filter Filter { get; set; } = null!;
         internal PluginUi Ui { get; set; } = null!;
         private Commands Commands { get; set; } = null!;
+        internal GameFunctions Functions { get; set; } = null!;
 
         public void Initialize(DalamudPluginInterface pluginInterface) {
             this.Interface = pluginInterface;

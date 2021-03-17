@@ -13,7 +13,7 @@ namespace BetterPartyFinder {
         }
 
         private void ReceiveListing(PartyFinderListing listing, PartyFinderListingEventArgs args) {
-            args.Visible = this.ListingVisible(listing);
+            args.Visible = args.Visible && this.ListingVisible(listing);
         }
 
         private bool ListingVisible(PartyFinderListing listing) {

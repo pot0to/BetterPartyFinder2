@@ -1,14 +1,20 @@
 ﻿using System;
-#if DEBUG
-using System.Linq;
-#endif
 using System.Runtime.InteropServices;
 using Dalamud.Hooking;
 using Dalamud.Plugin;
 
 namespace BetterPartyFinder {
     public class GameFunctions : IDisposable {
-        private Plugin Plugin { get; }
+        #region Request PF Listings
+
+        private delegate byte RequestPartyFinderListingsDelegate(IntPtr agent, short zero);
+
+        private readonly RequestPartyFinderListingsDelegate _requestPartyFinderListings;
+        private readonly Hook<RequestPartyFinderListingsDelegate> _requestPfListingsHook;
+
+        #endregion
+
+        #region PF Listings events
 
         internal delegate void PartyFinderListingEventDelegate(PartyFinderListing listing, PartyFinderListingEventArgs args);
 
@@ -16,16 +22,50 @@ namespace BetterPartyFinder {
 
         private delegate void HandlePfPacketDelegate(IntPtr param1, IntPtr data);
 
-        private readonly Hook<HandlePfPacketDelegate>? _handlePacketHook;
+        private readonly Hook<HandlePfPacketDelegate> _handlePacketHook;
 
-        internal GameFunctions(Plugin plugin) {
+        #endregion
+
+        private Plugin Plugin { get; }
+        private IntPtr PartyFinderAgent { get; set; } = IntPtr.Zero;
+
+        public GameFunctions(Plugin plugin) {
             this.Plugin = plugin;
 
+            var requestPfPtr = this.Plugin.Interface.TargetModuleScanner.ScanText("E8 ?? ?? ?? ?? 80 BB ?? ?? ?? ?? ?? 74 2B");
             var listingPtr = this.Plugin.Interface.TargetModuleScanner.ScanText("40 53 41 57 48 83 EC 28 48 8B D9");
+
+            this._requestPartyFinderListings = Marshal.GetDelegateForFunctionPointer<RequestPartyFinderListingsDelegate>(requestPfPtr);
+            this._requestPfListingsHook = new Hook<RequestPartyFinderListingsDelegate>(requestPfPtr, new RequestPartyFinderListingsDelegate(this.OnRequestPartyFinderListings));
+            this._requestPfListingsHook.Enable();
 
             this._handlePacketHook = new Hook<HandlePfPacketDelegate>(listingPtr, new HandlePfPacketDelegate(this.PacketDetour));
             this._handlePacketHook.Enable();
         }
+
+        public void Dispose() {
+            this._requestPfListingsHook.Dispose();
+            this._handlePacketHook.Dispose();
+        }
+
+        private byte OnRequestPartyFinderListings(IntPtr agent, short zero) {
+            this.PartyFinderAgent = agent;
+            return this._requestPfListingsHook.Original(agent, zero);
+        }
+
+        public void RequestPartyFinderListings() {
+            if (this.PartyFinderAgent == IntPtr.Zero) {
+                return;
+            }
+
+            var addon = this.Plugin.Interface.Framework.Gui.GetAddonByName("LookingForGroup", 1);
+            if (addon == null) {
+                return;
+            }
+
+            this._requestPartyFinderListings(this.PartyFinderAgent, 0);
+        }
+
 
         private void PacketDetour(IntPtr param1, IntPtr data) {
             if (data == IntPtr.Zero) {
@@ -49,15 +89,6 @@ namespace BetterPartyFinder {
             var packet = Marshal.PtrToStructure<PfPacket>(dataPtr);
 
             var needToRewrite = false;
-
-            #if DEBUG
-            var raw = Marshal.AllocHGlobal(PacketInfo.PacketSize);
-            Marshal.StructureToPtr(packet, raw, false);
-            var bytes = new byte[PacketInfo.PacketSize];
-            Marshal.Copy(raw, bytes, 0, PacketInfo.PacketSize);
-            PluginLog.Log(string.Join("", bytes.Select(b => b.ToString("x2"))));
-            Marshal.FreeHGlobal(raw);
-            #endif
 
             for (var i = 0; i < packet.listings.Length; i++) {
                 if (packet.listings[i].IsNull()) {
@@ -95,10 +126,6 @@ namespace BetterPartyFinder {
 
             // free memory
             pinnedArray.Free();
-        }
-
-        public void Dispose() {
-            this._handlePacketHook?.Dispose();
         }
     }
 
