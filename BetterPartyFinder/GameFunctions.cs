@@ -7,7 +7,7 @@ namespace BetterPartyFinder {
     public class GameFunctions : IDisposable {
         #region Request PF Listings
 
-        private delegate byte RequestPartyFinderListingsDelegate(IntPtr agent, short zero);
+        private delegate byte RequestPartyFinderListingsDelegate(IntPtr agent, byte categoryIdx);
 
         private readonly RequestPartyFinderListingsDelegate _requestPartyFinderListings;
         private readonly Hook<RequestPartyFinderListingsDelegate> _requestPfListingsHook;
@@ -32,7 +32,7 @@ namespace BetterPartyFinder {
         public GameFunctions(Plugin plugin) {
             this.Plugin = plugin;
 
-            var requestPfPtr = this.Plugin.Interface.TargetModuleScanner.ScanText("E8 ?? ?? ?? ?? 80 BB ?? ?? ?? ?? ?? 74 2B");
+            var requestPfPtr = this.Plugin.Interface.TargetModuleScanner.ScanText("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 40 0F 10 81 ?? ?? ?? ??");
             var listingPtr = this.Plugin.Interface.TargetModuleScanner.ScanText("40 53 41 57 48 83 EC 28 48 8B D9");
 
             this._requestPartyFinderListings = Marshal.GetDelegateForFunctionPointer<RequestPartyFinderListingsDelegate>(requestPfPtr);
@@ -48,12 +48,15 @@ namespace BetterPartyFinder {
             this._handlePacketHook.Dispose();
         }
 
-        private byte OnRequestPartyFinderListings(IntPtr agent, short zero) {
+        private byte OnRequestPartyFinderListings(IntPtr agent, byte categoryIdx) {
             this.PartyFinderAgent = agent;
-            return this._requestPfListingsHook.Original(agent, zero);
+            return this._requestPfListingsHook.Original(agent, categoryIdx);
         }
 
         public void RequestPartyFinderListings() {
+            // Updated 5.41
+            const int categoryOffset = 10_655;
+
             if (this.PartyFinderAgent == IntPtr.Zero) {
                 return;
             }
@@ -63,7 +66,8 @@ namespace BetterPartyFinder {
                 return;
             }
 
-            this._requestPartyFinderListings(this.PartyFinderAgent, 0);
+            var categoryIdx = Marshal.ReadByte(this.PartyFinderAgent + categoryOffset);
+            this._requestPartyFinderListings(this.PartyFinderAgent, categoryIdx);
         }
 
 
