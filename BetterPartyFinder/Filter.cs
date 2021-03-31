@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Dalamud.Game.Internal.Gui;
+using Dalamud.Game.Internal.Gui.Structs;
 
 namespace BetterPartyFinder {
     public class Filter : IDisposable {
@@ -9,7 +11,11 @@ namespace BetterPartyFinder {
         internal Filter(Plugin plugin) {
             this.Plugin = plugin;
 
-            this.Plugin.Functions.ReceivePartyFinderListing += this.ReceiveListing;
+            this.Plugin.Interface.Framework.Gui.PartyFinder.ReceiveListing += this.ReceiveListing;
+        }
+
+        public void Dispose() {
+            this.Plugin.Interface.Framework.Gui.PartyFinder.ReceiveListing -= this.ReceiveListing;
         }
 
         private void ReceiveListing(PartyFinderListing listing, PartyFinderListingEventArgs args) {
@@ -142,16 +148,12 @@ namespace BetterPartyFinder {
 
             // filter based on player
             if (filter.Players.Count > 0) {
-                if (filter.Players.Any(info => info.Name == listing.Name && info.World == listing.HomeWorld.Value.RowId)) {
+                if (filter.Players.Any(info => info.Name == listing.Name.TextValue && info.World == listing.HomeWorld.Value.RowId)) {
                     return false;
                 }
             }
 
             return true;
-        }
-
-        public void Dispose() {
-            this.Plugin.Functions.ReceivePartyFinderListing -= this.ReceiveListing;
         }
     }
 }

@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Data;
+using Dalamud.Game.Internal.Gui.Structs;
 using Dalamud.Interface;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
+using Addon = Lumina.Excel.GeneratedSheets.Addon;
 using GameAddon = Dalamud.Game.Internal.Gui.Addon.Addon;
 
 namespace BetterPartyFinder {

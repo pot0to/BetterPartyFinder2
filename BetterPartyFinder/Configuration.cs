@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Configuration;
+using Dalamud.Game.Internal.Gui.Structs;
 
 namespace BetterPartyFinder {
     public class Configuration : IPluginConfiguration {
