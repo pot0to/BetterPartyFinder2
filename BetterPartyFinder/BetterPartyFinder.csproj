@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>net48</TargetFramework>
-        <Version>1.1.1</Version>
+        <Version>1.1.2</Version>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
     </PropertyGroup>
@@ -35,7 +35,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="DalamudPackager" Version="1.2.0" />
+        <PackageReference Include="DalamudPackager" Version="1.2.0"/>
     </ItemGroup>
 
 </Project>
