@@ -133,7 +133,7 @@ namespace BetterPartyFinder {
                         return;
                     }
 
-                    ImGui.SetWindowPos(new Vector2(addon.X, addon.Y - ImGui.GetFrameHeight()));
+                    ImGui.SetWindowPos(ImGuiHelpers.MainViewport.Pos + new Vector2(addon.X, addon.Y - ImGui.GetFrameHeight()));
                 }
 
                 return;
@@ -141,7 +141,7 @@ namespace BetterPartyFinder {
 
             if (addon != null && this.Plugin.Config.WindowSide == WindowSide.Right) {
                 try {
-                    ImGui.SetWindowPos(new Vector2(addon.X + addon.Width, addon.Y));
+                    ImGui.SetWindowPos(ImGuiHelpers.MainViewport.Pos + new Vector2(addon.X + addon.Width, addon.Y));
                 } catch (NullReferenceException) {
                     // ignore
                 }
@@ -263,7 +263,7 @@ namespace BetterPartyFinder {
                     _ = addon.Width;
                     // only continue if width is set, meaning addon is initialised
                     var currentWidth = ImGui.GetWindowWidth();
-                    ImGui.SetWindowPos(new Vector2(addon.X - currentWidth, addon.Y));
+                    ImGui.SetWindowPos(ImGuiHelpers.MainViewport.Pos + new Vector2(addon.X - currentWidth, addon.Y));
                 } catch (NullReferenceException) {
                     // ignore
                 }
