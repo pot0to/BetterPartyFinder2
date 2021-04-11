@@ -1,4 +1,5 @@
 ﻿using Dalamud.Plugin;
+using XivCommon;
 
 namespace BetterPartyFinder {
     public class Plugin : IDalamudPlugin {
@@ -9,7 +10,7 @@ namespace BetterPartyFinder {
         private Filter Filter { get; set; } = null!;
         internal PluginUi Ui { get; set; } = null!;
         private Commands Commands { get; set; } = null!;
-        internal GameFunctions Functions { get; set; } = null!;
+        internal XivCommonBase Common { get; set; } = null!;
 
         public void Initialize(DalamudPluginInterface pluginInterface) {
             this.Interface = pluginInterface;
@@ -17,7 +18,7 @@ namespace BetterPartyFinder {
             this.Config = Configuration.Load(this) ?? new Configuration();
             this.Config.Initialise(this);
 
-            this.Functions = new GameFunctions(this);
+            this.Common = new XivCommonBase(this.Interface, Hooks.PartyFinder);
             this.Filter = new Filter(this);
             this.Ui = new PluginUi(this);
             this.Commands = new Commands(this);
@@ -30,7 +31,7 @@ namespace BetterPartyFinder {
             this.Commands.Dispose();
             this.Ui.Dispose();
             this.Filter.Dispose();
-            this.Functions.Dispose();
+            this.Common.Dispose();
         }
     }
 }

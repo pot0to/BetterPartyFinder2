@@ -125,7 +125,7 @@ namespace BetterPartyFinder {
             var showWindow = this.Visible || addon?.Visible == true;
 
             if (!showWindow || !ImGui.Begin(this.Plugin.Name, ref this._visible)) {
-                if (ImGui.IsWindowCollapsed() && addon != null && addon.Visible) {
+                if (ImGui.IsWindowCollapsed() && addon is {Visible: true}) {
                     // wait until addon is initialised to show
                     try {
                         _ = addon.Width;
@@ -167,7 +167,7 @@ namespace BetterPartyFinder {
                     this.Plugin.Config.SelectedPreset = null;
                     this.Plugin.Config.Save();
 
-                    this.Plugin.Functions.RequestPartyFinderListings();
+                    this.Plugin.Common.Functions.PartyFinder.RefreshListings();
                 }
 
                 foreach (var preset in this.Plugin.Config.Presets) {
@@ -178,7 +178,7 @@ namespace BetterPartyFinder {
                     this.Plugin.Config.SelectedPreset = preset.Key;
                     this.Plugin.Config.Save();
 
-                    this.Plugin.Functions.RequestPartyFinderListings();
+                    this.Plugin.Common.Functions.PartyFinder.RefreshListings();
                 }
 
                 ImGui.EndCombo();
