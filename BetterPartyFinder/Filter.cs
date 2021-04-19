@@ -96,8 +96,29 @@ namespace BetterPartyFinder {
                     var wanted = filter.Jobs[idx];
 
                     for (var i = 0; i < listing.SlotsAvailable; i++) {
-                        // if the slot isn't already full and the job can fit into it, add it to the set
-                        if (present[i] == 0 && slots[i][wanted]) {
+                        // if the slot is already full or the job can't fit into it, skip
+                        if (present[i] != 0 || !slots[i][wanted]) {
+                            continue;
+                        }
+
+                        // check for one player per job
+                        if (listing[SearchAreaFlags.OnePlayerPerJob]) {
+                            // make sure at least one job in the wanted set isn't taken
+                            foreach (var possibleJob in (JobFlags[]) Enum.GetValues(typeof(JobFlags))) {
+                                if (!wanted.HasFlag(possibleJob)) {
+                                    continue;
+                                }
+
+                                var job = possibleJob.ClassJob(this.Plugin.Interface.Data);
+                                if (present.Contains((byte) job.RowId)) {
+                                    continue;
+                                }
+
+                                jobs[idx].Add(i);
+                                break;
+                            }
+                        } else {
+                            // not one player per job
                             jobs[idx].Add(i);
                         }
                     }
