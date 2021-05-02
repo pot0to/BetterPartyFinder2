@@ -28,7 +28,7 @@ namespace BetterPartyFinder {
         }
 
         private void OnCommand(string command, string args) {
-            if (args == "c" || args == "config") {
+            if (args is "c" or "config") {
                 this.Plugin.Ui.SettingsVisible = !this.Plugin.Ui.SettingsVisible;
             } else {
                 this.Plugin.Ui.Visible = !this.Plugin.Ui.Visible;

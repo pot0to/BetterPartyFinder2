@@ -9,7 +9,7 @@
 
     <ItemGroup>
         <Reference Include="Dalamud">
-            <HintPath>$(AppData)\XIVLauncher\addon\Hooks\5.2.4.3\Dalamud.dll</HintPath>
+            <HintPath>$(AppData)\XIVLauncher\addon\Hooks\dev\Dalamud.dll</HintPath>
             <Private>False</Private>
         </Reference>
         <Reference Include="ImGui.NET">
@@ -35,10 +35,10 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="DalamudPackager" Version="1.2.1" />
-        <PackageReference Include="Fody" Version="6.5.1" PrivateAssets="all" />
-        <PackageReference Include="ILMerge.Fody" Version="1.16.0" PrivateAssets="all" />
-        <PackageReference Include="XivCommon" Version="1.3.0" />
+        <PackageReference Include="DalamudPackager" Version="1.2.1"/>
+        <PackageReference Include="Fody" Version="6.5.1" PrivateAssets="all"/>
+        <PackageReference Include="ILMerge.Fody" Version="1.16.0" PrivateAssets="all"/>
+        <PackageReference Include="XivCommon" Version="1.5.0"/>
     </ItemGroup>
 
 </Project>

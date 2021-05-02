@@ -114,6 +114,14 @@ namespace BetterPartyFinder {
                 this.Plugin.Config.Save();
             }
 
+            ImGui.Separator();
+
+            var showDesc = this.Plugin.Config.ShowDescriptionOnJoin;
+            if (ImGui.Checkbox("Show PF description in chat after joining", ref showDesc)) {
+                this.Plugin.Config.ShowDescriptionOnJoin = showDesc;
+                this.Plugin.Config.Save();
+            }
+
             ImGui.End();
         }
 
