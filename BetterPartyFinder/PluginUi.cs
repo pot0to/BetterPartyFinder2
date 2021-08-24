@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Data;
-using Dalamud.Game.Internal.Gui.Structs;
+using Dalamud.Game.Gui.PartyFinder.Types;
 using Dalamud.Interface;
+using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 using Addon = Lumina.Excel.GeneratedSheets.Addon;
-using GameAddon = Dalamud.Game.Internal.Gui.Addon.Addon;
 
 namespace BetterPartyFinder {
     public class PluginUi : IDisposable {
@@ -47,16 +47,16 @@ namespace BetterPartyFinder {
         internal PluginUi(Plugin plugin) {
             this.Plugin = plugin;
 
-            this.Plugin.Interface.UiBuilder.OnBuildUi += this.Draw;
-            this.Plugin.Interface.UiBuilder.OnOpenConfigUi += this.OnOpenConfig;
+            this.Plugin.Interface.UiBuilder.Draw += this.Draw;
+            this.Plugin.Interface.UiBuilder.OpenConfigUi += this.OnOpenConfig;
         }
 
         public void Dispose() {
-            this.Plugin.Interface.UiBuilder.OnBuildUi -= this.Draw;
-            this.Plugin.Interface.UiBuilder.OnOpenConfigUi -= this.OnOpenConfig;
+            this.Plugin.Interface.UiBuilder.Draw -= this.Draw;
+            this.Plugin.Interface.UiBuilder.OpenConfigUi -= this.OnOpenConfig;
         }
 
-        private void OnOpenConfig(object sender, EventArgs e) {
+        private void OnOpenConfig() {
             this.Visible = !this.Visible;
         }
 
@@ -75,8 +75,8 @@ namespace BetterPartyFinder {
             return result;
         }
 
-        private GameAddon? PartyFinderAddon() {
-            return this.Plugin.Interface.Framework.Gui.GetAddonByName("LookingForGroup", 1);
+        private IntPtr PartyFinderAddon() {
+            return this.Plugin.GameGui.GetAddonByName("LookingForGroup", 1);
         }
 
         private void Draw() {
@@ -125,27 +125,30 @@ namespace BetterPartyFinder {
             ImGui.End();
         }
 
-        private void DrawFiltersWindow() {
+        private unsafe void DrawFiltersWindow() {
             ImGui.SetNextWindowSize(new Vector2(550f, 510f), ImGuiCond.FirstUseEver);
 
-            var addon = this.Plugin.Config.ShowWhenPfOpen ? this.PartyFinderAddon() : null;
+            AtkUnitBase* addon = null;
+            var addonPtr = this.PartyFinderAddon();
+            if (this.Plugin.Config.ShowWhenPfOpen && addonPtr != IntPtr.Zero) {
+                addon = (AtkUnitBase*) addonPtr;
+            }
 
-            var showWindow = this.Visible || addon?.Visible == true;
+            var showWindow = this.Visible || addon != null && addon->IsVisible;
 
             if (!showWindow) {
                 return;
             }
 
             if (!ImGui.Begin(this.Plugin.Name, ref this._visible, ImGuiWindowFlags.NoDocking)) {
-                if (ImGui.IsWindowCollapsed() && addon is {Visible: true}) {
+                if (ImGui.IsWindowCollapsed() && addon != null && addon->IsVisible) {
                     // wait until addon is initialised to show
-                    try {
-                        _ = addon.Width;
-                    } catch (NullReferenceException) {
+                    var rootNode = addon->RootNode;
+                    if (rootNode == null) {
                         return;
                     }
 
-                    ImGui.SetWindowPos(ImGuiHelpers.MainViewport.Pos + new Vector2(addon.X, addon.Y - ImGui.GetFrameHeight()));
+                    ImGui.SetWindowPos(ImGuiHelpers.MainViewport.Pos + new Vector2(addon->X, addon->Y - ImGui.GetFrameHeight()));
                 }
 
                 ImGui.End();
@@ -153,10 +156,9 @@ namespace BetterPartyFinder {
             }
 
             if (addon != null && this.Plugin.Config.WindowSide == WindowSide.Right) {
-                try {
-                    ImGui.SetWindowPos(ImGuiHelpers.MainViewport.Pos + new Vector2(addon.X + addon.Width, addon.Y));
-                } catch (NullReferenceException) {
-                    // ignore
+                var rootNode = addon->RootNode;
+                if (rootNode != null) {
+                    ImGui.SetWindowPos(ImGuiHelpers.MainViewport.Pos + new Vector2(addon->X + rootNode->Width, addon->Y));
                 }
             }
 
@@ -272,13 +274,10 @@ namespace BetterPartyFinder {
             }
 
             if (addon != null && this.Plugin.Config.WindowSide == WindowSide.Left) {
-                try {
-                    _ = addon.Width;
-                    // only continue if width is set, meaning addon is initialised
+                var rootNode = addon->RootNode;
+                if (rootNode != null) {
                     var currentWidth = ImGui.GetWindowWidth();
-                    ImGui.SetWindowPos(ImGuiHelpers.MainViewport.Pos + new Vector2(addon.X - currentWidth, addon.Y));
-                } catch (NullReferenceException) {
-                    // ignore
+                    ImGui.SetWindowPos(ImGuiHelpers.MainViewport.Pos + new Vector2(addon->X - currentWidth, addon->Y));
                 }
             }
 
@@ -312,7 +311,7 @@ namespace BetterPartyFinder {
 
             foreach (var category in (UiCategory[]) Enum.GetValues(typeof(UiCategory))) {
                 var selected = filter.Categories.Contains(category);
-                if (!ImGui.Selectable(category.Name(this.Plugin.Interface.Data), ref selected)) {
+                if (!ImGui.Selectable(category.Name(this.Plugin.DataManager), ref selected)) {
                     continue;
                 }
 
@@ -361,23 +360,23 @@ namespace BetterPartyFinder {
             }
 
             if (ImGui.BeginChild("duty-selection", new Vector2(-1f, -1f))) {
-                var duties = this.Plugin.Interface.Data.GetExcelSheet<ContentFinderCondition>()
+                var duties = this.Plugin.DataManager.GetExcelSheet<ContentFinderCondition>()!
                     .Where(cf => cf.Unknown29)
                     .Where(cf => AllowedContentTypes.Contains(cf.ContentType.Row));
 
                 var searchQuery = this.DutySearchQuery.Trim();
                 if (searchQuery.Trim() != "") {
                     duties = duties.Where(duty => {
-                        var sestring = this.Plugin.Interface.SeStringManager.Parse(duty.Name.RawData.ToArray());
+                        var sestring = this.Plugin.SeStringManager.Parse(duty.Name.RawData.ToArray());
                         return sestring.TextValue.ContainsIgnoreCase(searchQuery);
                     });
                 }
 
                 foreach (var cf in duties) {
-                    var sestring = this.Plugin.Interface.SeStringManager.Parse(cf.Name.RawData.ToArray());
+                    var sestring = this.Plugin.SeStringManager.Parse(cf.Name.RawData.ToArray());
                     var selected = filter.Duties.Contains(cf.RowId);
                     var name = sestring.TextValue;
-                    name = char.ToUpperInvariant(name[0]) + name.Substring(1);
+                    name = char.ToUpperInvariant(name[0]) + name[1..];
                     if (!ImGui.Selectable(name, ref selected)) {
                         continue;
                     }
@@ -472,7 +471,7 @@ namespace BetterPartyFinder {
 
                 foreach (var job in (JobFlags[]) Enum.GetValues(typeof(JobFlags))) {
                     var selected = (slot & job) > 0;
-                    if (!ImGui.Selectable(job.ClassJob(this.Plugin.Interface.Data)?.Name ?? "???", ref selected)) {
+                    if (!ImGui.Selectable(job.ClassJob(this.Plugin.DataManager)?.Name ?? "???", ref selected)) {
                         continue;
                     }
 
@@ -603,7 +602,7 @@ namespace BetterPartyFinder {
         private string _playerName = string.Empty;
 
         private void DrawPlayersTab(ConfigurationFilter filter) {
-            var player = this.Plugin.Interface.ClientState.LocalPlayer;
+            var player = this.Plugin.ClientState.LocalPlayer;
 
             if (player == null || !ImGui.BeginTabItem("Players")) {
                 return;
@@ -615,7 +614,7 @@ namespace BetterPartyFinder {
 
             ImGui.SameLine();
 
-            var worlds = Util.WorldsOnDataCentre(this.Plugin.Interface.Data, player)
+            var worlds = Util.WorldsOnDataCentre(this.Plugin.DataManager, player)
                 .OrderBy(world => world.Name.RawString)
                 .ToList();
 
@@ -642,7 +641,7 @@ namespace BetterPartyFinder {
             PlayerInfo? deleting = null;
 
             foreach (var info in filter.Players) {
-                var world = this.Plugin.Interface.Data.GetExcelSheet<World>().GetRow(info.World);
+                var world = this.Plugin.DataManager.GetExcelSheet<World>()!.GetRow(info.World);
                 ImGui.TextUnformatted($"{info.Name}@{world?.Name}");
                 ImGui.SameLine();
                 if (IconButton(FontAwesomeIcon.Trash, $"delete-player-{info.GetHashCode()}")) {
@@ -679,54 +678,54 @@ namespace BetterPartyFinder {
 
     internal static class UiCategoryExt {
         internal static string? Name(this UiCategory category, DataManager data) {
-            var ct = data.GetExcelSheet<ContentType>();
-            var addon = data.GetExcelSheet<Addon>();
+            var ct = data.GetExcelSheet<ContentType>()!;
+            var addon = data.GetExcelSheet<Addon>()!;
 
             return category switch {
-                UiCategory.None => addon.GetRow(1_562).Text.ToString(), // best guess
-                UiCategory.DutyRoulette => ct.GetRow((uint) ContentType2.DutyRoulette).Name.ToString(),
-                UiCategory.Dungeons => ct.GetRow((uint) ContentType2.Dungeons).Name.ToString(),
-                UiCategory.Guildhests => ct.GetRow((uint) ContentType2.Guildhests).Name.ToString(),
-                UiCategory.Trials => ct.GetRow((uint) ContentType2.Trials).Name.ToString(),
-                UiCategory.Raids => ct.GetRow((uint) ContentType2.Raids).Name.ToString(),
-                UiCategory.HighEndDuty => addon.GetRow(10_822).Text.ToString(), // best guess
-                UiCategory.Pvp => ct.GetRow((uint) ContentType2.Pvp).Name.ToString(),
-                UiCategory.QuestBattles => ct.GetRow((uint) ContentType2.QuestBattles).Name.ToString(),
-                UiCategory.Fates => ct.GetRow((uint) ContentType2.Fates).Name.ToString(),
-                UiCategory.TreasureHunt => ct.GetRow((uint) ContentType2.TreasureHunt).Name.ToString(),
-                UiCategory.TheHunt => addon.GetRow(8_613).Text.ToString(),
-                UiCategory.GatheringForays => addon.GetRow(2_306).Text.ToString(),
-                UiCategory.DeepDungeons => ct.GetRow((uint) ContentType2.DeepDungeons).Name.ToString(),
-                UiCategory.AdventuringForays => addon.GetRow(2_307).Text.ToString(),
+                UiCategory.None => addon.GetRow(1_562)?.Text.ToString(), // best guess
+                UiCategory.DutyRoulette => ct.GetRow((uint) ContentType2.DutyRoulette)?.Name.ToString(),
+                UiCategory.Dungeons => ct.GetRow((uint) ContentType2.Dungeons)?.Name.ToString(),
+                UiCategory.Guildhests => ct.GetRow((uint) ContentType2.Guildhests)?.Name.ToString(),
+                UiCategory.Trials => ct.GetRow((uint) ContentType2.Trials)?.Name.ToString(),
+                UiCategory.Raids => ct.GetRow((uint) ContentType2.Raids)?.Name.ToString(),
+                UiCategory.HighEndDuty => addon.GetRow(10_822)?.Text.ToString(), // best guess
+                UiCategory.Pvp => ct.GetRow((uint) ContentType2.Pvp)?.Name.ToString(),
+                UiCategory.QuestBattles => ct.GetRow((uint) ContentType2.QuestBattles)?.Name.ToString(),
+                UiCategory.Fates => ct.GetRow((uint) ContentType2.Fates)?.Name.ToString(),
+                UiCategory.TreasureHunt => ct.GetRow((uint) ContentType2.TreasureHunt)?.Name.ToString(),
+                UiCategory.TheHunt => addon.GetRow(8_613)?.Text.ToString(),
+                UiCategory.GatheringForays => addon.GetRow(2_306)?.Text.ToString(),
+                UiCategory.DeepDungeons => ct.GetRow((uint) ContentType2.DeepDungeons)?.Name.ToString(),
+                UiCategory.AdventuringForays => addon.GetRow(2_307)?.Text.ToString(),
                 _ => null,
             };
         }
 
         internal static bool ListingMatches(this UiCategory category, DataManager data, PartyFinderListing listing) {
-            var cr = data.GetExcelSheet<ContentRoulette>();
+            var cr = data.GetExcelSheet<ContentRoulette>()!;
 
-            var isDuty = listing.Category == Category.Duty;
+            var isDuty = listing.Category == DutyCategory.Duty;
             var isNormal = listing.DutyType == DutyType.Normal;
             var isOther = listing.DutyType == DutyType.Other;
             var isNormalDuty = isNormal && isDuty;
 
             return category switch {
                 UiCategory.None => isOther && isDuty && listing.RawDuty == 0,
-                UiCategory.DutyRoulette => listing.DutyType == DutyType.Roulette && isDuty && !cr.GetRow(listing.RawDuty).Unknown10,
+                UiCategory.DutyRoulette => listing.DutyType == DutyType.Roulette && isDuty && (!cr.GetRow(listing.RawDuty)?.Unknown10 ?? false),
                 UiCategory.Dungeons => isNormalDuty && listing.Duty.Value.ContentType.Row == (uint) ContentType2.Dungeons,
                 UiCategory.Guildhests => isNormalDuty && listing.Duty.Value.ContentType.Row == (uint) ContentType2.Guildhests,
                 UiCategory.Trials => isNormalDuty && !listing.Duty.Value.HighEndDuty && listing.Duty.Value.ContentType.Row == (uint) ContentType2.Trials,
                 UiCategory.Raids => isNormalDuty && !listing.Duty.Value.HighEndDuty && listing.Duty.Value.ContentType.Row == (uint) ContentType2.Raids,
                 UiCategory.HighEndDuty => isNormalDuty && listing.Duty.Value.HighEndDuty,
-                UiCategory.Pvp => listing.DutyType == DutyType.Roulette && isDuty && cr.GetRow(listing.RawDuty).Unknown10
+                UiCategory.Pvp => listing.DutyType == DutyType.Roulette && isDuty && (cr.GetRow(listing.RawDuty)?.Unknown10 ?? false)
                                   || isNormalDuty && listing.Duty.Value.ContentType.Row == (uint) ContentType2.Pvp,
-                UiCategory.QuestBattles => isOther && listing.Category == Category.QuestBattles,
-                UiCategory.Fates => isOther && listing.Category == Category.Fates,
-                UiCategory.TreasureHunt => isOther && listing.Category == Category.TreasureHunt,
-                UiCategory.TheHunt => isOther && listing.Category == Category.TheHunt,
-                UiCategory.GatheringForays => isNormal && listing.Category == Category.GatheringForays,
-                UiCategory.DeepDungeons => isOther && listing.Category == Category.DeepDungeons,
-                UiCategory.AdventuringForays => isNormal && listing.Category == Category.AdventuringForays,
+                UiCategory.QuestBattles => isOther && listing.Category == DutyCategory.QuestBattles,
+                UiCategory.Fates => isOther && listing.Category == DutyCategory.Fates,
+                UiCategory.TreasureHunt => isOther && listing.Category == DutyCategory.TreasureHunt,
+                UiCategory.TheHunt => isOther && listing.Category == DutyCategory.TheHunt,
+                UiCategory.GatheringForays => isNormal && listing.Category == DutyCategory.GatheringForays,
+                UiCategory.DeepDungeons => isOther && listing.Category == DutyCategory.DeepDungeons,
+                UiCategory.AdventuringForays => isNormal && listing.Category == DutyCategory.AdventuringForays,
                 _ => false,
             };
         }

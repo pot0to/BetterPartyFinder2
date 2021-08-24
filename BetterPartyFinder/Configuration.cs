@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Configuration;
-using Dalamud.Game.Internal.Gui.Structs;
+using Dalamud.Game.Gui.PartyFinder.Types;
 
 namespace BetterPartyFinder {
     public class Configuration : IPluginConfiguration {
@@ -120,7 +120,7 @@ namespace BetterPartyFinder {
                 Conditions = this.Conditions,
                 Duties = duties,
                 Jobs = jobs,
-                Name = string.Copy(this.Name),
+                Name = new string(this.Name),
                 Objectives = this.Objectives,
                 DutiesMode = this.DutiesMode,
                 LootRule = this.LootRule,

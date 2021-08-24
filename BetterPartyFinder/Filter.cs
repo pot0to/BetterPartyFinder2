@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Dalamud.Game.Internal.Gui;
-using Dalamud.Game.Internal.Gui.Structs;
+using Dalamud.Game.Gui.PartyFinder.Types;
 
 namespace BetterPartyFinder {
     public class Filter : IDisposable {
@@ -11,11 +10,11 @@ namespace BetterPartyFinder {
         internal Filter(Plugin plugin) {
             this.Plugin = plugin;
 
-            this.Plugin.Interface.Framework.Gui.PartyFinder.ReceiveListing += this.ReceiveListing;
+            this.Plugin.PartyFinderGui.ReceiveListing += this.ReceiveListing;
         }
 
         public void Dispose() {
-            this.Plugin.Interface.Framework.Gui.PartyFinder.ReceiveListing -= this.ReceiveListing;
+            this.Plugin.PartyFinderGui.ReceiveListing -= this.ReceiveListing;
         }
 
         private void ReceiveListing(PartyFinderListing listing, PartyFinderListingEventArgs args) {
@@ -77,7 +76,7 @@ namespace BetterPartyFinder {
             }
 
             // filter based on category (slow)
-            if (!filter.Categories.Any(category => category.ListingMatches(this.Plugin.Interface.Data, listing))) {
+            if (!filter.Categories.Any(category => category.ListingMatches(this.Plugin.DataManager, listing))) {
                 return false;
             }
 
@@ -109,7 +108,7 @@ namespace BetterPartyFinder {
                                     continue;
                                 }
 
-                                var job = possibleJob.ClassJob(this.Plugin.Interface.Data);
+                                var job = possibleJob.ClassJob(this.Plugin.DataManager);
                                 if (present.Contains((byte) job.RowId)) {
                                     continue;
                                 }

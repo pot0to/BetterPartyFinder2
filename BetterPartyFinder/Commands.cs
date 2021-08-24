@@ -14,16 +14,16 @@ namespace BetterPartyFinder {
         internal Commands(Plugin plugin) {
             this.Plugin = plugin;
 
-            foreach (var name in CommandNames) {
-                this.Plugin.Interface.CommandManager.AddHandler(name.Key, new CommandInfo(this.OnCommand) {
-                    HelpMessage = name.Value,
+            foreach (var (name, help) in CommandNames) {
+                this.Plugin.CommandManager.AddHandler(name, new CommandInfo(this.OnCommand) {
+                    HelpMessage = help,
                 });
             }
         }
 
         public void Dispose() {
             foreach (var name in CommandNames.Keys) {
-                this.Plugin.Interface.CommandManager.RemoveHandler(name);
+                this.Plugin.CommandManager.RemoveHandler(name);
             }
         }
 

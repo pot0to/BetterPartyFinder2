@@ -1,5 +1,5 @@
 ﻿using System;
-using Dalamud.Game.Internal.Gui.Structs;
+using Dalamud.Game.Gui.PartyFinder.Types;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 
@@ -25,10 +25,10 @@ namespace BetterPartyFinder {
             SeString msg = "Party description: ";
             msg.Payloads.AddRange(listing.Description.Payloads);
 
-            this.Plugin.Interface.Framework.Gui.Chat.PrintChat(new XivChatEntry {
+            this.Plugin.ChatGui.PrintChat(new XivChatEntry {
                 Name = "Better Party Finder",
                 Type = XivChatType.SystemMessage,
-                MessageBytes = msg.Encode(),
+                Message = msg,
             });
         }
     }

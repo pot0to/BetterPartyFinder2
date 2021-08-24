@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Linq;
 using Dalamud.Data;
-using Dalamud.Game.ClientState.Actors.Types;
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using Lumina.Excel.GeneratedSheets;
 
 namespace BetterPartyFinder {
@@ -14,8 +14,8 @@ namespace BetterPartyFinder {
                 return;
             }
 
-            var max = data.GetExcelSheet<Item>()
-                .Where(item => item.EquipSlotCategory.Value.Body != 0)
+            var max = data.GetExcelSheet<Item>()!
+                .Where(item => item.EquipSlotCategory.Value!.Body != 0)
                 .Select(item => item.LevelItem.Value?.RowId)
                 .Where(level => level != null)
                 .Cast<uint>()
@@ -30,7 +30,7 @@ namespace BetterPartyFinder {
 
         internal static IEnumerable<World> WorldsOnDataCentre(DataManager data, PlayerCharacter character) {
             var dcRow = character.HomeWorld.GameData.DataCenter.Row;
-            return data.GetExcelSheet<World>()
+            return data.GetExcelSheet<World>()!
                 .Where(world => world.IsPublic && world.DataCenter.Row == dcRow);
         }
     }
