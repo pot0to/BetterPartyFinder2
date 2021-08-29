@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using Dalamud.Data;
 using Dalamud.Game.Gui.PartyFinder.Types;
+using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
@@ -367,13 +368,13 @@ namespace BetterPartyFinder {
                 var searchQuery = this.DutySearchQuery.Trim();
                 if (searchQuery.Trim() != "") {
                     duties = duties.Where(duty => {
-                        var sestring = this.Plugin.SeStringManager.Parse(duty.Name.RawData.ToArray());
+                        var sestring = (SeString) duty.Name;
                         return sestring.TextValue.ContainsIgnoreCase(searchQuery);
                     });
                 }
 
                 foreach (var cf in duties) {
-                    var sestring = this.Plugin.SeStringManager.Parse(cf.Name.RawData.ToArray());
+                    var sestring = (SeString) cf.Name;
                     var selected = filter.Duties.Contains(cf.RowId);
                     var name = sestring.TextValue;
                     name = char.ToUpperInvariant(name[0]) + name[1..];

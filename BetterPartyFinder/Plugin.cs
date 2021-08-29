@@ -3,7 +3,6 @@ using Dalamud.Game.ClientState;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Gui.PartyFinder;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using XivCommon;
@@ -33,9 +32,6 @@ namespace BetterPartyFinder {
 
         [PluginService]
         internal PartyFinderGui PartyFinderGui { get; init; } = null!;
-
-        [PluginService]
-        internal SeStringManager SeStringManager { get; init; } = null!;
 
         internal Configuration Config { get; }
         private Filter Filter { get; }
