@@ -712,13 +712,13 @@ namespace BetterPartyFinder {
 
             return category switch {
                 UiCategory.None => isOther && isDuty && listing.RawDuty == 0,
-                UiCategory.DutyRoulette => listing.DutyType == DutyType.Roulette && isDuty && (!cr.GetRow(listing.RawDuty)?.Unknown10 ?? false),
+                UiCategory.DutyRoulette => listing.DutyType == DutyType.Roulette && isDuty && (!cr.GetRow(listing.RawDuty)?.IsPvP ?? false),
                 UiCategory.Dungeons => isNormalDuty && listing.Duty.Value.ContentType.Row == (uint) ContentType2.Dungeons,
                 UiCategory.Guildhests => isNormalDuty && listing.Duty.Value.ContentType.Row == (uint) ContentType2.Guildhests,
                 UiCategory.Trials => isNormalDuty && !listing.Duty.Value.HighEndDuty && listing.Duty.Value.ContentType.Row == (uint) ContentType2.Trials,
                 UiCategory.Raids => isNormalDuty && !listing.Duty.Value.HighEndDuty && listing.Duty.Value.ContentType.Row == (uint) ContentType2.Raids,
                 UiCategory.HighEndDuty => isNormalDuty && listing.Duty.Value.HighEndDuty,
-                UiCategory.Pvp => listing.DutyType == DutyType.Roulette && isDuty && (cr.GetRow(listing.RawDuty)?.Unknown10 ?? false)
+                UiCategory.Pvp => listing.DutyType == DutyType.Roulette && isDuty && (cr.GetRow(listing.RawDuty)?.IsPvP ?? false)
                                   || isNormalDuty && listing.Duty.Value.ContentType.Row == (uint) ContentType2.Pvp,
                 UiCategory.QuestBattles => isOther && listing.Category == DutyCategory.QuestBattles,
                 UiCategory.Fates => isOther && listing.Category == DutyCategory.Fates,

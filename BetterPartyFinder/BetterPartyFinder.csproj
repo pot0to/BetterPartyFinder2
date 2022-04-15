@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>net5-windows</TargetFramework>
-        <Version>1.2.2</Version>
+        <Version>1.2.3</Version>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
         <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
@@ -38,8 +38,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="DalamudPackager" Version="2.1.5"/>
-        <PackageReference Include="XivCommon" Version="4.0.0-alpha.1"/>
+        <PackageReference Include="DalamudPackager" Version="2.1.6"/>
+        <PackageReference Include="XivCommon" Version="5.0.1-alpha.1"/>
     </ItemGroup>
 
     <ItemGroup>
