@@ -441,6 +441,14 @@ namespace BetterPartyFinder {
                 this.Plugin.Config.Save();
             }
 
+            ImGui.SameLine();
+
+            bool onePlayerPerJob = filter.OnePlayerPerJob;
+            if (ImGui.Checkbox("One Player Per Job", ref onePlayerPerJob)) {
+                filter.OnePlayerPerJob = onePlayerPerJob;
+                this.Plugin.Config.Save();
+            }
+
             var toRemove = new HashSet<int>();
 
             for (var i = 0; i < filter.Jobs.Count; i++) {
