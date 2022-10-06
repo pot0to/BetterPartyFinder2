@@ -39,6 +39,7 @@ namespace BetterPartyFinder {
         public HashSet<UiCategory> Categories { get; set; } = new();
 
         public List<JobFlags> Jobs { get; set; } = new();
+        public bool OnePlayerPerJob { get; set; } = false;
         // default to true because that's the PF's default
         // use nosol if trying to avoid spam
 
@@ -120,6 +121,7 @@ namespace BetterPartyFinder {
                 Conditions = this.Conditions,
                 Duties = duties,
                 Jobs = jobs,
+                OnePlayerPerJob = this.OnePlayerPerJob,
                 Name = new string(this.Name),
                 Objectives = this.Objectives,
                 DutiesMode = this.DutiesMode,
