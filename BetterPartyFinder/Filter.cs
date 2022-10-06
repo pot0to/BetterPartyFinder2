@@ -101,7 +101,7 @@ namespace BetterPartyFinder {
                         }
 
                         // check for one player per job
-                        if (listing[SearchAreaFlags.OnePlayerPerJob]) {
+                        if (filter.OnePlayerPerJob || listing[SearchAreaFlags.OnePlayerPerJob]) {
                             // make sure at least one job in the wanted set isn't taken
                             foreach (var possibleJob in (JobFlags[]) Enum.GetValues(typeof(JobFlags))) {
                                 if (!wanted.HasFlag(possibleJob)) {
